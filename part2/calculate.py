@@ -1,9 +1,7 @@
 import requests
 import os
 from dotenv import load_dotenv
-from datetime import datetime, timedelta
-from pymongo import MongoClient
-import json
+from datetime import datetime
 import sys
 from tabulate import tabulate
 
