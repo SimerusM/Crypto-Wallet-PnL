@@ -131,8 +131,6 @@ def calculate_pnl(wallet_address: str) -> list[list]:
 
     # Sort wallet data by block timestamp, format: [{token_address, balance, timestamp, token_id}, ....]
     wallet_data = sorted(wallet_general_info["data"], key=lambda x: x["block_timestamp"])
-    wallet_data = [{'token_address': '0x0000000000000000000000000000000000000000', 'balance': 0.1, 'block_timestamp': '2023-01-09T01:22:47', 'token_id': 'ethereum'}, {'token_address': '0x0000000000000000000000000000000000000000', 'balance': 0.09595307299395876, 'block_timestamp': '2023-01-09T01:28:59', 'token_id': 'ethereum'}, {'token_address': '0x0000000000000000000000000000000000000000', 'balance': 0.09333362786070175, 'block_timestamp': '2024-05-10T05:17:11', 'token_id': 'ethereum'}, {'token_address': '0x0000000000000000000000000000000000000000', 'balance': 0.09312087735100151, 'block_timestamp': '2024-05-10T05:28:23', 'token_id': 'ethereum'}, {'token_address': '0x0000000000000000000000000000000000000000', 'balance': 1, 'block_timestamp': '2024-05-10T05:28:23', 'token_id': 'bitcoin'}]
-
 
     # token_balances containing the total balance for each token_id, format: (token_id: str, total balance: float)
     distinct_tokens_with_balances = find_token_balances(wallet_data)
