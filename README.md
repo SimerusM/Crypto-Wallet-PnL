@@ -75,3 +75,10 @@ For frequently accessed data (e.g. the top 1-1000 database shard data), we can c
 
 Speaking of caches and databases, this results in a lot of complexity to manage. If we want to stick to something easier to develop but very optimized, AWS offers something called MemoryDB which is essentially a super high-performance cache that can also act as a database (GB to >100TB worth of storage). It is highly available as it has Multi-AZ (an exact copy of the database is also in another availability zone located in a different place, this is offered by AWS) and a transaction log for recovery and durability. It is so scaleable that it can be used as a primary database.
 The entire dataset for an application can be stored in memory and it supports >160 million requests per second with microsecond read and single-digit millisecond write latency. This is a great option if we want to use a cloud service to handle high-scale PnL.
+
+
+So as a summary,
+
+**Including 10000 tokens**: We use database sharding, batch processing, and read replicas with load-balancing techniques for traffic distribution.
+**5 Minute Granularity**: Data aggregation, time-series database, and a MemoryDB solution as a hybrid for caching and database purposes.
+**Start of Coins PnL**: Incremental batching of data (for data that we need), we can also apply sharding to cast away older and less frequently accessed data (and load balancers to help direct traffic for this), and time-series database handling.
