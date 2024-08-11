@@ -9,17 +9,18 @@ Install all the necessary dependencies using the requirements.txt file: `pip ins
 
 Copy the `example.env` file into an actual `.env` file using `cp example.env .env`, and then copy and paste the respective keys/URIs into its place.
 
-**MongoDB**
+**MongoDB Database Setup + Env keys**
 
-To get the MongoDB URI, create a "New Project" from your MongoDB organization home page after navigating to "Projects". In this new project create a cluster, follow the instructions and make sure to set up a driver. Make sure to copy and paste the conneciton string of the driver that looks like this: `mongodb+srv://<user>:<password>@cluster0.633pc.mongodb.net/?retryWrites=true&w=majority&appName=<cluster name>`, where you replace the placeholders with your own information.
+To get the MongoDB URI, sign into MongoDB atlas online, create a "New Project" from your MongoDB organization home page after navigating to "Projects". In this new project create a cluster, select the hardware requirements of your choosing, follow the instructions and set up a driver. Make sure to copy and paste the connection string of the driver that looks like this: `mongodb+srv://<user>:<password>@cluster0.633pc.mongodb.net/?retryWrites=true&w=majority&appName=<cluster name>`, where you replace the placeholders with your own information, into the `.env` file.
 
-**CoinGecko**
+**CoinGecko Env Keys**
 
-Go to the CoinGecko dashboard, click on your profile and go to "Developer's Dashboard". Once you're there, either create or copy and paste an API key.
+Go to the CoinGecko dashboard, click on your profile icon and go to "Developer's Dashboard". Once you're there, either create or copy and paste an API key.
+Note: This is used to make sure the CoinGecko servers are running.
 
 **Allium Key**
 
-Provied in the assignment: 5jwLBV9oVitGnSfkGl6rp5hhJzDbBvoKa-4KllVq5L4CoxfIv_-AT8jrNblF16YhXBKiZkdqzG16ZZSZW4m8CA
+Provided in the assignment: 5jwLBV9oVitGnSfkGl6rp5hhJzDbBvoKa-4KllVq5L4CoxfIv_-AT8jrNblF16YhXBKiZkdqzG16ZZSZW4m8CA
 
 <br/>
 
@@ -56,29 +57,21 @@ Here's a sample result:
 
 # Part 3
 
-With an increase in tokens, granularity, and token timeframe, we're going to have to store more and more data (and process more for retrieval). A potential way to mitigate this is to horizontally scale our databases with database sharding wherein we distribute partioned data across multiple databases (e.g. coins in the top 1-1000 in terms of market cap go in database 1, top 1001-2000 go in database 2, etc...). With this, we can improve retrieval as queries can be executed in parallel to these shards to gather data quicker and it also prevents bottlenecks from occuring.
+With an increase in tokens, granularity, and token timeframe, we will have to store more and more data (and process more for retrieval). A potential way to mitigate this is to horizontally scale our databases with database sharding wherein we distribute partitioned data across multiple databases (e.g. coins in the top 1-1000 in terms of market cap go in database 1, top 1001-2000 go in database 2, etc...). With this, we can improve retrieval as queries can be executed in parallel to these shards to gather data quicker and it also prevents bottlenecks from occuring.
 
-In each database shard, we can go further and batch process the data into smaller chunks (e.g. 100 tokens per batch in a db shard of 1000 tokens) and process multiple batches in parellel (assuming we have a multi core CPU).
+In each database shard, we can batch process the data into smaller chunks (e.g. 100 tokens per batch in a db shard of 1000 tokens) and process multiple batches in parallel (assuming we have a multi-core CPU).
 
-If the exact value of individual data points isn't super important, rather, just the ability to get PnLs, we can consider aggregating the data and thus reduce the number of data points we have stored/need to process. Instead of storing every single fluctuation of data price in a 5 minute period, we can store the average of these fluctuations (and maybe other important data such as the high/low). Again, this would significantly help in terms of reducing the data volume but it depends on the use case of the system and if the individual data points themselves matter.
+Suppose the exact value of individual data points isn't super important, rather, just the ability to get PnLs. In that case, we can consider aggregating the data and thus reduce the number of data points we have stored/need to process. Instead of storing every single fluctuation of data price in 5 minutes, we can store the average of these fluctuations (and maybe other important data such as the high/low). Again, this would significantly help in terms of reducing the data volume but it depends on the use case of the system and if the individual data points themselves matter.
 
-Say we need to calculate the PnL of a person with an ETH token from like 2018, loading all that data from 2018 up until now would be very resource intensive. To help with this process we can introduce incremental batching where we process data chunk by chunk as we go in sequential order. As we calculate the PnLs, we can cache these intermediate results so in the future we can just reuse these values which will significantly help in future scenarios where data needs to be reprocessed. 
+Say we need to calculate the PnL of a person with an ETH token from like 2018, loading all that data from 2018 up until now would be very resource-intensive. To help with this process we can introduce incremental batching where we process data chunk by chunk as we go in sequential order. As we calculate the PnLs, we can cache these intermediate results so in the future we can just reuse these values which will significantly help in future scenarios where data needs to be reprocessed. 
 
 As for the specific type of database, we can use something called a time-series database (e.g. InfluxDB) to further enhance the system/process. These databases are specifically designed to handle large volumes of time-indexed data and support fast queries over time ranges, making them ideal for storing and retrieving the historical price data needed for PnL calculations.
 
-For database shards that potentially could get read heavy (e.g. the shard that stores the coins in the top 1-1000 like Bitcoin and Ethereum) we can implement read replicas of those shards to distribute the read loads. By introducing replication, we must also make sure to keep it persistent as well so we can choose between two different replication strategies. For scenarios where reads are going to be heavily conducted we can use the single-leader replication style where one node (leader) handles the writes and the replicas (followers) handle the reads. For write heavy scenarios a multi-leader replication style can be used where multiple nodes accept writes and changes get propogated to one another - we must be wary that with this option we must be able to deal with conflicts through means such as version vectors or last-write-wins.
+For database shards that potentially could get read-heavy (e.g. the shard that stores the coins in the top 1-1000 like Bitcoin and Ethereum), we can implement read replicas of those shards to distribute the read loads. By introducing replication, we must also make sure to keep it persistent as well so we can choose between two different replication strategies. For scenarios where reads are going to be heavily conducted we can use the single-leader replication style where one node (leader) handles the writes and the replicas (followers) handle the reads. For write-heavy scenarios a multi-leader replication style can be used where multiple nodes accept writes and changes get propagated to one another - we must be wary that with this option we must be able to deal with conflicts through means such as version vectors or last-write-wins.
 
-Since we have replicas of popular database shards that experience heavy requests, we can introduce a load balancer (a type of reverse proxy) to handle distributing the traffic evenly using strategies like round robin. We can consider deploying this entire architecture in a Kubernetes cluster where it orchestrates the deployment and scaling of these systems (which can be containerized) by automatiaclly making new instances for an increase in demand.
+Since we have replicas of popular database shards that experience heavy requests, we can introduce a load balancer (a type of reverse proxy) to handle distributing the traffic evenly using strategies like round robin. We can consider deploying this entire architecture in a Kubernetes cluster where it orchestrates the deployment and scaling of these systems (which can be containerized) by automatically making new instances for an increase in demand.
 
 For frequently accessed data (e.g. the top 1-1000 database shard data), we can consider adding a cache in front of the DB such as Redis to serve data faster and reduce load on the shard.
 
-Speaking of caches and databases, this results in a lot of complexity to manage. If we want to stick to something easier to develop but very optimized, AWS offers something called MemoryDB which is essentially a super high performance cache that can also act as a database (GB to >100TB worth of storage). It is highly available as it has Multi-AZ (an exact copy of the database is also in another availability zone located in a different place, this is offererd by AWS) and a transaction log for recovery and durability. It is so scaleable that it can be used as a primary database.
-The entire dataset for an application can be stored in memory and it supports >160 million requests per second with microsecond read and single-digit millisecond write latency. This is a great option if we want to use a cloud service to handle high scale PnL.
-
-
-
-
-
-
-
-
+Speaking of caches and databases, this results in a lot of complexity to manage. If we want to stick to something easier to develop but very optimized, AWS offers something called MemoryDB which is essentially a super high-performance cache that can also act as a database (GB to >100TB worth of storage). It is highly available as it has Multi-AZ (an exact copy of the database is also in another availability zone located in a different place, this is offered by AWS) and a transaction log for recovery and durability. It is so scaleable that it can be used as a primary database.
+The entire dataset for an application can be stored in memory and it supports >160 million requests per second with microsecond read and single-digit millisecond write latency. This is a great option if we want to use a cloud service to handle high-scale PnL.
