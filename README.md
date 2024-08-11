@@ -21,7 +21,12 @@ Go to the CoinGecko dashboard, click on your profile and go to "Developer's Dash
 
 Provied in the assignment: 5jwLBV9oVitGnSfkGl6rp5hhJzDbBvoKa-4KllVq5L4CoxfIv_-AT8jrNblF16YhXBKiZkdqzG16ZZSZW4m8CA
 
+Once you have all the proper keys in the `.env`, now we can start running each of the scripts. The main ones for the part 1 functionality are `ingestion.py` and `store_data.py` (ingestion gets called in store_data). To start the ingestion process of getting the top 10 coins by market cap and getting the last 7 days worth of hourly data, enter into the `part1` folder with `cd part1` from the root directory and run the command `python store_data.py`. This will automatically call the `ingestion.py` script for the data ingestion, and then it stores this data that we collected from the ingestion script onto MongoDB.
 
+Note that the ingestion script uses the free CoinGecko URL for retrieval. To avoid rate limiting and if you do have a premium account add `&x_cg_pro_api_key={COINGECKO_API_KEY}` to the end of both `GET_HOURLY_PRICES_OVER_WEEK_URL` and `GET_TOP_TEN_COINS_URL` located in `ingestion.py` in the functions `retrieve_hourly_data_over_week(coin_id: str)` and `retrieve_top_ten_coins()` respectively like so:
+
+`GET_HOURLY_PRICES_OVER_WEEK_URL = f"https://api.coingecko.com/api/v3/coins/{coin_id}/market_chart?vs_currency=usd&days=7&x_cg_pro_api_key={COINGECKO_API_KEY}"`
+`GET_TOP_TEN_COINS_URL = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&x_cg_pro_api_key={COINGECKO_API_KEY}"`
 
 
 # Part 2
