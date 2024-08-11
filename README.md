@@ -80,5 +80,7 @@ The entire dataset for an application can be stored in memory and it supports >1
 So as a summary,
 
 **Including 10000 tokens**: We use database sharding, batch processing, and read replicas with load-balancing techniques for traffic distribution.
+
 **5 Minute Granularity**: Data aggregation, time-series database, and a MemoryDB solution as a hybrid for caching and database purposes.
+
 **Start of Coins PnL**: Incremental batching of data (for data that we need), we can also apply sharding to cast away older and less frequently accessed data (and load balancers to help direct traffic for this), and time-series database handling.
